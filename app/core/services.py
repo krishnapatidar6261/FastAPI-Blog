@@ -60,12 +60,3 @@ class UserRegistrationLoginService:
         
         return api_response(400, message="Username and Password not verified")
     
-
-        
-
-# class ProfileService:
-
-#     @classmethod
-#     def my_profile(cls, db:Session, token):
-        
-#         pass
