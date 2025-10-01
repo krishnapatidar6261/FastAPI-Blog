@@ -1,8 +1,6 @@
 from pydantic import BaseModel, EmailStr, root_validator
 from typing import Optional
 
-
-
 class UserRegistrationSchema(BaseModel):
 
     username: str
@@ -12,7 +10,6 @@ class UserRegistrationSchema(BaseModel):
     password: str
     confirm_password: str
 
-
     @root_validator(skip_on_failure=True)
     def passwords_match(cls, values):
         pw = values.get('password')
@@ -21,7 +18,6 @@ class UserRegistrationSchema(BaseModel):
             raise ValueError('Password and Confirm Password do not match')
         return values
     
-
 class UserLoginSchema(BaseModel):
 
     username: str
