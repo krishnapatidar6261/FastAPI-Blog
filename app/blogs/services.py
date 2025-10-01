@@ -1,6 +1,6 @@
 from app.blogs.models import Blogs
 from sqlalchemy.orm import Session
-from app.blogs.schemas import BlogCreateSchema, BlogUpdateSchema
+from app.blogs.schemas import BlogCreateSchema, BlogUpdateSchema, BlogIDSchema
 from app.utils.response_model import api_response
 from app.utils.paginations import Pagination
 
@@ -68,3 +68,21 @@ class BlogModelCRUDServices:
         paginated_res["results"] = [obj.serializer for obj in paginated_res["results"]]
 
         return api_response(200, message="fetched successfully", data=paginated_res)
+    
+
+    def delete_blog(self, user_id, schema: BlogIDSchema):
+        
+        blog = self.db.query(Blogs).filter(Blogs.id == schema.id).first()
+        if not blog:
+            return api_response(404, message="Blog Not exists")
+        
+        if blog.user_id != user_id:
+            return api_response(403, message="You are not author of this blog")
+        self.db.delete(blog)
+
+        try:
+            self.save()
+        except Exception as e:
+            return api_response(500, message=f"Internal Server error: {str(e)}")
+        
+        return api_response(200, message="Blog Deleted successfully")
