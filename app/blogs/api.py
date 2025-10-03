@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.blogs.schemas import *
-from app.blogs.services import BlogModelCRUDServices
+from app.blogs.services import BlogModelCRUDServices, BlogHashTagsService
 from database.session import get_db
 from app.utils.jwt_auth import CustomAuth
 
@@ -58,3 +58,11 @@ def delete_blog(schema: BlogIDSchema,
     blog_service = BlogModelCRUDServices(db=db)
     return blog_service.delete_blog(schema=schema, user_id=user_id)
 
+@router.post("/get_all_hashtags")
+def get_all_hashtags(schema: PaginationBlogAppSchema,
+                      db: Session= Depends(get_db),
+                      user_auth: dict = Depends(CustomAuth())
+                      ):
+    
+    hashtag_service = BlogHashTagsService(db=db)
+    return hashtag_service.get_all_hashtags(offset=schema.offset, limit=schema.limit)

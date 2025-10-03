@@ -1,7 +1,32 @@
 from database.base import Base
-from sqlalchemy import Text, String, Column, Boolean, Integer, DateTime, ForeignKey
+from sqlalchemy import Text, String, Column, Boolean, Integer, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from app.core.models import Users
+
+blog_hashtag = Table(
+    "blog_hashtag",
+    Base.metadata,
+    Column("blog_id", Integer, ForeignKey("blogs.id"), primary_key=True),
+    Column("hashtag_id", Integer, ForeignKey("hashtags.id"), primary_key=True),
+)
+
+class HashTags(Base):
+    __tablename__ = "hashtags"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False)
+    blogs = relationship(
+        "Blogs",
+        secondary=blog_hashtag,
+        back_populates="hashtags"
+    )
+
+    @property
+    def serializer(self):
+        dic ={}
+        dic["id"] = self.id
+        dic["name"]= self.name
+        return dic
 
 class Blogs(Base):
 
@@ -14,6 +39,10 @@ class Blogs(Base):
     
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("Users", back_populates="blogs")
+    hashtags = relationship("HashTags",
+                            secondary=blog_hashtag,
+                            back_populates="blogs"
+                        )
 
     def __repr__(self):
         return f"<Blog(id={self.id}, title='{self.title}')>"
@@ -27,5 +56,6 @@ class Blogs(Base):
         dic["created"] = self.created.isoformat()
         dic["updated"] = self.updated.isoformat()
         dic["author"] = self.user.serializer
+        dic["hashtags"] = [hashtag.serializer for hashtag in self.hashtags]
 
         return dic
