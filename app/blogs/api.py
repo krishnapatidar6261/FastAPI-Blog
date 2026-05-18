@@ -1,68 +1,95 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.blogs.schemas import *
-from app.blogs.services import BlogModelCRUDServices, BlogHashTagsService
-from database.session import get_db
+
+from app.blogs.schemas import (
+    BlogCreateSchema,
+    BlogIDSchema,
+    BlogUpdateSchema,
+    PaginationBlogAppSchema,
+)
+from app.blogs.services import BlogHashTagsService, BlogModelCRUDServices
 from app.utils.jwt_auth import CustomAuth
+from database.session import get_db
 
 router = APIRouter()
 
+
 @router.get("/")
 def hello():
-    return {"message":"Hello Blogs"}
+    return {"message": "Hello Blogs"}
+
 
 @router.post("/create-blog/")
-def create_blog(schema: BlogCreateSchema, 
-                    db:Session = Depends(get_db),
-                        auth_detail: dict = Depends(CustomAuth())):
-    
+def create_blog(
+    schema: BlogCreateSchema,
+    db: Session = Depends(get_db),
+    auth_detail: dict = Depends(CustomAuth()),
+):
+
     blog_service = BlogModelCRUDServices(db=db)
     user_id = auth_detail["user_id"]
     return blog_service.create_blog(schema=schema, user_id=user_id)
 
+
 @router.post("/update-blog/")
-def update_blog(schema: BlogUpdateSchema, 
-                    db:Session = Depends(get_db),
-                        auth_detail: dict = Depends(CustomAuth())):
-    
+def update_blog(
+    schema: BlogUpdateSchema,
+    db: Session = Depends(get_db),
+    auth_detail: dict = Depends(CustomAuth()),
+):
+
     blog_service = BlogModelCRUDServices(db=db)
     user_id = auth_detail["user_id"]
     return blog_service.update_blog(schema=schema, user_id=user_id)
 
+
 @router.get("/get_all_blogs/")
-def get_all_blogs(offset, limit,
-                    db:Session = Depends(get_db),
-                        auth_detail: dict = Depends(CustomAuth())):
-    
+def get_all_blogs(
+    offset,
+    limit,
+    db: Session = Depends(get_db),
+    auth_detail: dict = Depends(CustomAuth()),
+):
+
     blog_service = BlogModelCRUDServices(db=db)
     return blog_service.get_all_blogs(offset=offset, limit=limit)
 
+
 @router.get("/get_blog_user/")
-def get_blog_user(offset, limit, user_id: int = None, 
-                  db:Session = Depends(get_db), 
-                    auth_detail: dict = Depends(CustomAuth())):
-    
+def get_blog_user(
+    offset,
+    limit,
+    user_id: int = None,
+    db: Session = Depends(get_db),
+    auth_detail: dict = Depends(CustomAuth()),
+):
+
     if not user_id:
-        user_id= auth_detail["user_id"]
+        user_id = auth_detail["user_id"]
 
     blog_service = BlogModelCRUDServices(db=db)
     return blog_service.get_user_blog(offset=offset, limit=limit, user_id=user_id)
 
+
 @router.post("/delete_blog/")
-def delete_blog(schema: BlogIDSchema,
-                    db:Session = Depends(get_db),
-                        auth_detail: dict = Depends(CustomAuth())):
-    
+def delete_blog(
+    schema: BlogIDSchema,
+    db: Session = Depends(get_db),
+    auth_detail: dict = Depends(CustomAuth()),
+):
+
     user_id = auth_detail["user_id"]
 
     blog_service = BlogModelCRUDServices(db=db)
     return blog_service.delete_blog(schema=schema, user_id=user_id)
 
+
 @router.post("/get_all_hashtags")
-def get_all_hashtags(schema: PaginationBlogAppSchema,
-                      db: Session= Depends(get_db),
-                      user_auth: dict = Depends(CustomAuth())
-                      ):
-    
+def get_all_hashtags(
+    schema: PaginationBlogAppSchema,
+    db: Session = Depends(get_db),
+    user_auth: dict = Depends(CustomAuth()),
+):
+
     hashtag_service = BlogHashTagsService(db=db)
     return hashtag_service.get_all_hashtags(offset=schema.offset, limit=schema.limit)

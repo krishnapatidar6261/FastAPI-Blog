@@ -1,5 +1,7 @@
-from pydantic import BaseModel, EmailStr, root_validator
 from typing import Optional
+
+from pydantic import BaseModel, EmailStr, root_validator
+
 
 class UserRegistrationSchema(BaseModel):
 
@@ -12,12 +14,13 @@ class UserRegistrationSchema(BaseModel):
 
     @root_validator(skip_on_failure=True)
     def passwords_match(cls, values):
-        pw = values.get('password')
-        cpw = values.get('confirm_password')
+        pw = values.get("password")
+        cpw = values.get("confirm_password")
         if pw != cpw:
-            raise ValueError('Password and Confirm Password do not match')
+            raise ValueError("Password and Confirm Password do not match")
         return values
-    
+
+
 class UserLoginSchema(BaseModel):
 
     username: str

@@ -1,11 +1,13 @@
 # main.py
 import uvicorn
 from fastapi import FastAPI
-# from app.core import models as core_models
-# from app.blogs import models as blogs_models
-from database.session import engine
+
 from app.blogs.api import router as blogs_router
 from app.core.api import router as core_router
+
+# from app.core import models as core_models
+# from app.blogs import models as blogs_models
+# from database.session import engine
 
 
 def create_app() -> FastAPI:
@@ -15,8 +17,9 @@ def create_app() -> FastAPI:
 
     app.include_router(core_router, tags=["Core"])
     app.include_router(blogs_router, prefix="/blogs", tags=["Blogs"])
-    
+
     return app
+
 
 app = create_app()
 
