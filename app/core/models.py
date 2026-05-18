@@ -22,7 +22,8 @@ class Users(Base):
     updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     blogs = relationship("Blogs", back_populates="user")
-    
+    likes_given = relationship("BlogLike", back_populates="liked_by")
+
     @property
     def serializer(self):
         dic = {}
