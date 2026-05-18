@@ -44,11 +44,12 @@ class Blogs(Base):
                             back_populates="blogs"
                         )
 
+    likes = relationship("BlogLike", back_populates="blog", lazy="dynamic")
+
     def __repr__(self):
         return f"<Blog(id={self.id}, title='{self.title}')>"
-
-    @property
-    def serializer(self):
+    
+    def serializer(self, user_id=None):
         dic = {}
         dic["id"] = self.id
         dic["title"] = self.title
@@ -57,5 +58,32 @@ class Blogs(Base):
         dic["updated"] = self.updated.isoformat()
         dic["author"] = self.user.serializer
         dic["hashtags"] = [hashtag.serializer for hashtag in self.hashtags]
+        
+        dic["is_liked"]= False
+        if user_id:
+            dic["is_liked"] = self.likes.filter_by(liked_by_user_id=user_id).first() is not None
+
+        return dic
+    
+class BlogLike(Base):
+    __tablename__ = "blog_likes"
+    
+    id = Column(Integer, primary_key=True)
+    blog_id = Column(Integer, ForeignKey("blogs.id"))
+    liked_by_user_id = Column(Integer, ForeignKey("users.id"))
+    created = Column(DateTime, default=datetime.utcnow)
+    updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    blog = relationship("Blogs", back_populates="likes")
+    liked_by = relationship("Users", back_populates="likes_given")
+
+    def __repr__(self):
+        return f"<BlogLike(id={self.id}, blog_id='{self.blog_id}'), Liked by='{self.liked_by_id}')>"
+    
+    def serializer(self, user_id=None):
+        dic = {}
+        dic["id"] = self.id
+        dic["blog_details"] = self.blog.serializer(user_id=user_id)
+        dic["user_details"] = self.liked_by.serializer
 
         return dic
