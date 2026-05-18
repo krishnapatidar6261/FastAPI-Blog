@@ -1,17 +1,22 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Boolean, DateTime
-from database.base import Base
-from sqlalchemy.orm import relationship
 from datetime import datetime
+
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+from sqlalchemy.orm import relationship
+
+from database.base import Base
 
 
 class Users(Base):
-    
+
     __tablename__ = "users"
 
-    id= Column(Integer, primary_key=True)
-    username = Column(String(50), unique=True,)
+    id = Column(Integer, primary_key=True)
+    username = Column(
+        String(50),
+        unique=True,
+    )
     first_name = Column(String(50))
-    last_name= Column(String(50), nullable=True)
+    last_name = Column(String(50), nullable=True)
     email = Column(String(50), unique=True, nullable=False)
     password = Column(Text)
     is_active = Column(Boolean, default=False)
@@ -20,7 +25,7 @@ class Users(Base):
 
     created = Column(DateTime, default=datetime.utcnow)
     updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     blogs = relationship("Blogs", back_populates="user")
     likes_given = relationship("BlogLike", back_populates="liked_by")
 
@@ -32,9 +37,6 @@ class Users(Base):
         dic["first_name"] = self.first_name
         dic["last_name"] = self.last_name
         dic["email"] = self.email
-        dic["is_active"]= self.is_active
+        dic["is_active"] = self.is_active
 
         return dic
-    
-    
-    
