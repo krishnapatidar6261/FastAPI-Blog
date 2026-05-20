@@ -42,6 +42,12 @@ class BlogModelCRUDServices:
             return api_response(500, message=f"Internal Server Error: {str(e)}")
 
         return api_response(
+            200,
+            data=blog_obj.serializer(user_id=user_id),
+            message="Blog Created Successfully",
+        )
+
+        return api_response(
             200, data=blog_obj.serializer, message="Blog Created Successfully"
         )
 
@@ -64,18 +70,22 @@ class BlogModelCRUDServices:
             return api_response(500, message=f"Internal Server error: {str(e)}")
 
         return api_response(
-            200, message="Blog Updated Successfully", data=blog.serializer
+            200,
+            message="Blog Updated Successfully",
+            data=blog.serializer(user_id=user_id),
         )
 
-    def get_all_blogs(self, offset, limit):
+    def get_all_blogs(self, offset, limit, user_id=None):
         queryset = self.db.query(Blogs).order_by(Blogs.created.desc())
         pagination_obj = Pagination(offset=offset, limit=limit)
         paginated_res = pagination_obj.queryset_level_pagination(queryset=queryset)
-        paginated_res["results"] = [obj.serializer for obj in paginated_res["results"]]
+        paginated_res["results"] = [
+            obj.serializer(user_id=user_id) for obj in paginated_res["results"]
+        ]
 
         return api_response(200, message="fetched successfully", data=paginated_res)
 
-    def get_user_blog(self, user_id, offset, limit):
+    def get_user_blog(self, user_id, offset, limit, requested_user_id=None):
         queryset = (
             self.db.query(Blogs)
             .order_by(Blogs.created.desc())
@@ -83,7 +93,10 @@ class BlogModelCRUDServices:
         )
         pagination_obj = Pagination(offset=offset, limit=limit)
         paginated_res = pagination_obj.queryset_level_pagination(queryset=queryset)
-        paginated_res["results"] = [obj.serializer for obj in paginated_res["results"]]
+        paginated_res["results"] = [
+            obj.serializer(user_id=requested_user_id)
+            for obj in paginated_res["results"]
+        ]
 
         return api_response(200, message="fetched successfully", data=paginated_res)
 
@@ -96,6 +109,7 @@ class BlogModelCRUDServices:
             return api_response(403, message="You are not author of this blog")
         self.db.delete(blog)
 
+        # before deleting blog need to delete the blog likes
         try:
             self.save()
         except Exception as e:

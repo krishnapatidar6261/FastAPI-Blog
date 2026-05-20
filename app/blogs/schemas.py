@@ -26,3 +26,9 @@ class PaginationBlogAppSchema(BaseModel):
 
 class UserBlogSchema(PaginationBlogAppSchema):
     user_id: int
+
+
+class LikeBlogSchema(BaseModel):
+
+    blog_id: int
+    is_liked: bool
