@@ -52,7 +52,9 @@ def get_all_blogs(
 ):
 
     blog_service = BlogModelCRUDServices(db=db)
-    return blog_service.get_all_blogs(offset=offset, limit=limit)
+
+    user_id = auth_detail["user_id"]
+    return blog_service.get_all_blogs(offset=offset, limit=limit, user_id=user_id)
 
 
 @router.get("/get_blog_user/")
@@ -67,8 +69,12 @@ def get_blog_user(
     if not user_id:
         user_id = auth_detail["user_id"]
 
+    requested_user_id = auth_detail["user_id"]
+
     blog_service = BlogModelCRUDServices(db=db)
-    return blog_service.get_user_blog(offset=offset, limit=limit, user_id=user_id)
+    return blog_service.get_user_blog(
+        offset=offset, limit=limit, user_id=user_id, requested_user_id=requested_user_id
+    )
 
 
 @router.post("/delete_blog/")
