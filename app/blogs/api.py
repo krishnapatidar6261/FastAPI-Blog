@@ -5,9 +5,15 @@ from app.blogs.schemas import (
     BlogCreateSchema,
     BlogIDSchema,
     BlogUpdateSchema,
+    LikeBlogSchema,
     PaginationBlogAppSchema,
 )
-from app.blogs.services import BlogHashTagsService, BlogModelCRUDServices
+from app.blogs.services import (
+    BlogHashTagsService,
+    BlogModelCRUDServices,
+    LikeBlogService,
+    UserLikeSchema,
+)
 from app.utils.jwt_auth import CustomAuth
 from database.session import get_db
 
@@ -99,3 +105,32 @@ def get_all_hashtags(
 
     hashtag_service = BlogHashTagsService(db=db)
     return hashtag_service.get_all_hashtags(offset=schema.offset, limit=schema.limit)
+
+
+@router.post(
+    "/like_blog/",
+)
+def like_blog(
+    schema: LikeBlogSchema,
+    db: Session = Depends(get_db),
+    user_auth: dict = Depends(CustomAuth()),
+):
+
+    liked_by_user = user_auth["user_id"]
+    like_blog_service = LikeBlogService(db=db)
+
+    return like_blog_service.like_blog(liked_by_uid=liked_by_user, schema=schema)
+
+
+@router.post("/liked_list/")
+def like_list(
+    schema: UserLikeSchema,
+    db: Session = Depends(get_db),
+    user_auth: dict = Depends(CustomAuth()),
+):
+
+    logged_in_uid = user_auth["user_id"]
+
+    like_blog_service = LikeBlogService(db=db)
+
+    return like_blog_service.liked_user_list(user_id=logged_in_uid, schema=schema)

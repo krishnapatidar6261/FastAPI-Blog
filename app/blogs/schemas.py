@@ -32,3 +32,8 @@ class LikeBlogSchema(BaseModel):
 
     blog_id: int
     is_liked: bool
+
+
+class UserLikeSchema(PaginationBlogAppSchema):
+
+    blog_id: int
