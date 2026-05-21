@@ -1,7 +1,13 @@
 from sqlalchemy.orm import Session
 
-from app.blogs.models import Blogs, HashTags
-from app.blogs.schemas import BlogCreateSchema, BlogIDSchema, BlogUpdateSchema
+from app.blogs.models import BlogLike, Blogs, HashTags
+from app.blogs.schemas import (
+    BlogCreateSchema,
+    BlogIDSchema,
+    BlogUpdateSchema,
+    LikeBlogSchema,
+    UserLikeSchema,
+)
 from app.utils.paginations import Pagination
 from app.utils.response_model import api_response
 
@@ -147,3 +153,68 @@ class BlogHashTagsService(DBPingService):
             self.db.query(HashTags).filter(HashTags.id.in_(ids_list)).all()
         )
         return hashtag_queryset
+
+
+class LikeBlogService(DBPingService):
+
+    def like_blog(self, liked_by_uid: int, schema: LikeBlogSchema):
+
+        is_liked = schema.is_liked
+        blog_id = schema.blog_id
+
+        blog_obj = self.db.query(Blogs).filter_by(id=blog_id).first()
+
+        if not blog_obj:
+            return api_response(
+                status_code=404,
+                message="Blog not exists",
+            )
+
+        if is_liked:
+            like = BlogLike(
+                blog_id=blog_obj.id,
+                liked_by_user_id=liked_by_uid,
+            )
+            self.db.add(like)
+            self.save()
+
+            return api_response(
+                status_code=201,
+                message="Blog Liked",
+                data=blog_obj.serializer(user_id=liked_by_uid),
+            )
+
+        liked_obj = (
+            self.db.query(BlogLike)
+            .filter_by(liked_by_user_id=liked_by_uid, blog_id=blog_obj.id)
+            .first()
+        )
+
+        if liked_obj:
+            self.db.delete(liked_obj)
+            self.save()
+            return api_response(status_code=200, message="Blog Unliked")
+
+        return api_response(status_code=400, message="Something went Wrong")
+
+    def liked_user_list(self, schema: UserLikeSchema, user_id: int):
+
+        blog_id = schema.blog_id
+
+        blog_obj = self.db.query(Blogs).filter_by(id=blog_id).first()
+
+        if not blog_obj:
+            return api_response(status_code=404, message="Blog Not exists")
+
+        likes = self.db.query(BlogLike).filter_by(blog_id=blog_id)
+
+        pagination_obj = Pagination(offset=schema.offset, limit=schema.limit)
+        paginated_res = pagination_obj.queryset_level_pagination(queryset=likes)
+
+        paginated_res["results"] = [
+            obj.serializer(user_id=user_id) for obj in paginated_res["results"]
+        ]
+
+        return api_response(
+            status_code=200, data=paginated_res, message="fetched Successfully"
+        )
